@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",                          // Compile to modern JavaScript (Node 20 supports this)
+    "lib": ["ES2022"],                           // Include modern JS features
+
+    /* Modules */
+    "module": "commonjs",                        // Use CommonJS (Node.js default module system)
+    "rootDir": "./src",                          // All source code lives in src/
+    "moduleResolution": "node",                  // Resolve modules like Node.js does
+    "baseUrl": "./src",                          // Base directory for non-relative imports
+    "paths": {                                   // Import aliases (e.g., @/models instead of ../../../models)
+      "@/*": ["./*"]
+    },
+
+    /* Emit */
+    "outDir": "./dist",                          // Compiled JavaScript goes here
+    "sourceMap": true,                           // Generate .map files for debugging
+    "removeComments": true,                      // Strip comments from output (smaller files)
+
+    /* Interop Constraints */
+    "esModuleInterop": true,                     // Better compatibility with ES modules
+    "allowSyntheticDefaultImports": true,        // Allow 'import x from y' instead of 'import * as x'
+    "forceConsistentCasingInFileNames": true,    // Prevent issues on case-sensitive filesystems
+
+    /* Type Checking - STRICT MODE */
+    "strict": true,                              // Enable ALL strict type-checking options
+    "noImplicitAny": true,                       // Error on variables without explicit type
+    "strictNullChecks": true,                    // null and undefined are not assignable to other types
+    "strictFunctionTypes": true,                 // Strict checking of function types
+    "strictPropertyInitialization": true,        // Class properties must be initialized
+    "noImplicitThis": true,                      // Error when 'this' has implicit 'any' type
+    "alwaysStrict": true,                        // Parse in strict mode and emit "use strict"
+
+    /* Additional Checks */
+    "noUnusedLocals": true,                      // Error on unused local variables
+    "noUnusedParameters": true,                  // Error on unused function parameters
+    "noImplicitReturns": true,                   // Error when not all code paths return a value
+    "noFallthroughCasesInSwitch": true,          // Error on fallthrough cases in switch
+
+    /* Completeness */
+    "skipLibCheck": true,                        // Skip type checking of .d.ts files (faster compilation)
+    "resolveJsonModule": true                    // Allow importing .json files
+  },
+  "include": ["src/**/*"],                       // Compile all TypeScript files in src/
+  "exclude": ["node_modules", "dist", "tests"]   // Don't compile these directories
+}

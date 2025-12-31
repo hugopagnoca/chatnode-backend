@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatNode - Test Client</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00d9ff;
+            margin-bottom: 20px;
+        }
+        .section {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .status.disconnected {
+            background: #e74c3c;
+        }
+        .status.connected {
+            background: #27ae60;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input {
+            background: #0f3460;
+            color: #eee;
+            flex: 1;
+        }
+        button {
+            background: #00d9ff;
+            color: #16213e;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00b8d9;
+        }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .messages {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .message {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: #16213e;
+        }
+        .message.sent {
+            background: #00d9ff;
+            color: #16213e;
+            margin-left: 50px;
+        }
+        .message .time {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        .message .user {
+            font-weight: bold;
+            color: #00d9ff;
+        }
+        .message.sent .user {
+            color: #16213e;
+        }
+        .typing {
+            font-style: italic;
+            color: #00d9ff;
+            font-size: 13px;
+            min-height: 20px;
+        }
+        .flex {
+            display: flex;
+            gap: 10px;
+        }
+        .info {
+            background: #0f3460;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .info code {
+            background: #16213e;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #00d9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚂 ChatNode - WebSocket Test Client</h1>
+
+        <!-- Status -->
+        <div class="section">
+            <div id="status" class="status disconnected">⚫ Disconnected</div>
+            <div class="flex">
+                <input type="text" id="token" placeholder="JWT Token (paste from login)" value="">
+                <button onclick="connect()">Connect</button>
+                <button onclick="disconnect()">Disconnect</button>
+            </div>
+            <div class="info">
+                💡 <strong>How to use:</strong><br>
+                1. Login via API: <code>POST /api/auth/login</code> to get a token<br>
+                2. Paste the token above and click Connect<br>
+                3. Join the room (ID: 151b080f-d3f7-464e-abf7-8aaee347ea03)<br>
+                4. Start chatting!
+            </div>
+        </div>
+
+        <!-- Room Controls -->
+        <div class="section">
+            <h3>Room Controls</h3>
+            <div class="flex">
+                <input type="text" id="roomId" placeholder="Room ID" value="151b080f-d3f7-464e-abf7-8aaee347ea03">
+                <button onclick="joinRoom()" id="joinBtn" disabled>Join Room</button>
+                <button onclick="leaveRoom()" id="leaveBtn" disabled>Leave Room</button>
+            </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="section">
+            <h3>Chat</h3>
+            <div class="messages" id="messages"></div>
+            <div class="typing" id="typing"></div>
+            <div class="flex">
+                <input type="text" id="messageInput" placeholder="Type a message..." onkeyup="handleTyping(event)" disabled>
+                <button onclick="sendMessage()" id="sendBtn" disabled>Send</button>
+            </div>
+        </div>
+
+        <!-- Events Log -->
+        <div class="section">
+            <h3>Events Log</h3>
+            <div class="messages" id="events"></div>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let typingTimeout = null;
+        let isTyping = false;
+        let currentRoomId = null;
+        let currentUserId = null;
+
+        function log(message, isEvent = false) {
+            const el = document.getElementById(isEvent ? 'events' : 'messages');
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `<span class="time">${new Date().toLocaleTimeString()}</span> ${message}`;
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function decodeJWT(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function connect() {
+            const token = document.getElementById('token').value.trim();
+            if (!token) {
+                alert('Please enter a JWT token');
+                return;
+            }
+
+            // Decode token to get user ID
+            const decoded = decodeJWT(token);
+            if (decoded && decoded.id) {
+                currentUserId = decoded.id;
+                log(`🔑 Authenticated as: ${decoded.username}`, true);
+            }
+
+            log('🔄 Connecting to WebSocket...', true);
+
+            socket = io('http://localhost:3000', {
+                auth: { token }
+            });
+
+            socket.on('connect', () => {
+                log('✅ Connected to WebSocket server', true);
+                document.getElementById('status').className = 'status connected';
+                document.getElementById('status').textContent = '🟢 Connected';
+                document.getElementById('joinBtn').disabled = false;
+            });
+
+            socket.on('disconnect', (reason) => {
+                log(`❌ Disconnected: ${reason}`, true);
+                document.getElementById('status').className = 'status disconnected';
+                document.getElementById('status').textContent = '⚫ Disconnected';
+                document.getElementById('joinBtn').disabled = true;
+                document.getElementById('leaveBtn').disabled = true;
+                document.getElementById('messageInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`❌ Connection error: ${error.message}`, true);
+            });
+
+            socket.on('room-joined', (data) => {
+                log(`✅ Joined room: ${data.roomId}`, true);
+                currentRoomId = data.roomId;
+                document.getElementById('leaveBtn').disabled = false;
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+            });
+
+            socket.on('user-joined', (data) => {
+                log(`👤 ${data.username} joined the room`, true);
+            });
+
+            socket.on('user-left', (data) => {
+                log(`👋 ${data.username} left the room`, true);
+            });
+
+            socket.on('message-received', (data) => {
+                const isMe = data.userId === currentUserId;
+                const msgClass = isMe ? 'message sent' : 'message';
+                const userDisplay = isMe ? 'You' : data.user.username;
+                log(`<div class="${msgClass}"><span class="user">${userDisplay}:</span> ${data.content}</div>`);
+            });
+
+            socket.on('user-typing', (data) => {
+                const typing = document.getElementById('typing');
+                if (data.isTyping) {
+                    typing.textContent = `${data.username} is typing...`;
+                } else {
+                    typing.textContent = '';
+                }
+            });
+
+            socket.on('error', (data) => {
+                log(`⚠️ Error: ${data.message}`, true);
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+
+        function joinRoom() {
+            const roomId = document.getElementById('roomId').value.trim();
+            if (!roomId) {
+                alert('Please enter a room ID');
+                return;
+            }
+            socket.emit('join-room', { roomId });
+        }
+
+        function leaveRoom() {
+            if (currentRoomId) {
+                socket.emit('leave-room', { roomId: currentRoomId });
+                currentRoomId = null;
+                document.getElementById('leaveBtn').disabled = true;
+                document.getElementById('messageInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            if (!content || !currentRoomId) return;
+
+            socket.emit('send-message', {
+                roomId: currentRoomId,
+                content
+            });
+
+            input.value = '';
+            if (isTyping) {
+                socket.emit('typing-stop', { roomId: currentRoomId });
+                isTyping = false;
+            }
+        }
+
+        function handleTyping(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+                return;
+            }
+
+            if (!currentRoomId) return;
+
+            if (!isTyping) {
+                socket.emit('typing-start', { roomId: currentRoomId });
+                isTyping = true;
+            }
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('typing-stop', { roomId: currentRoomId });
+                isTyping = false;
+            }, 1000);
+        }
+
+        // Instructions on load
+        log('👋 Welcome! Connect with a JWT token to start chatting.', true);
+    </script>
+</body>
+</html>
