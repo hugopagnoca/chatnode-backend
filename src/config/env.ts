@@ -2,7 +2,13 @@ import { z } from 'zod';
 import dotenv from 'dotenv';
 
 // Load .env file into process.env
+console.log('[ENV] Loading environment variables...');
 dotenv.config();
+console.log('[ENV] NODE_ENV:', process.env.NODE_ENV);
+console.log('[ENV] PORT:', process.env.PORT);
+console.log('[ENV] JWT_SECRET:', process.env.JWT_SECRET ? '***SET***' : 'MISSING');
+console.log('[ENV] DATABASE_URL:', process.env.DATABASE_URL ? '***SET***' : 'MISSING');
+console.log('[ENV] CORS_ORIGIN:', process.env.CORS_ORIGIN);
 
 /**
  * Environment variable schema with validation rules
