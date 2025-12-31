@@ -2,36 +2,31 @@ import { prisma } from '@/config/database';
 import { logger } from '@/utils/logger';
 
 /**
- * Clean database - keep only alice and bob users
+ * Clean database - DELETE ALL DATA
  */
 async function cleanDatabase() {
   try {
     logger.info('Starting database cleanup...');
+    logger.info('⚠️  WARNING: This will delete ALL data!');
 
     // Delete all messages
     const deletedMessages = await prisma.message.deleteMany({});
-    logger.info(`Deleted ${deletedMessages.count} messages`);
+    logger.info(`✓ Deleted ${deletedMessages.count} messages`);
 
     // Delete all room members
     const deletedMembers = await prisma.roomMember.deleteMany({});
-    logger.info(`Deleted ${deletedMembers.count} room members`);
+    logger.info(`✓ Deleted ${deletedMembers.count} room members`);
 
     // Delete all rooms
     const deletedRooms = await prisma.room.deleteMany({});
-    logger.info(`Deleted ${deletedRooms.count} rooms`);
+    logger.info(`✓ Deleted ${deletedRooms.count} rooms`);
 
-    // Delete all users except alice and bob
-    const deletedUsers = await prisma.user.deleteMany({
-      where: {
-        email: {
-          notIn: ['alice@mail.com', 'bob@mail.com'],
-        },
-      },
-    });
-    logger.info(`Deleted ${deletedUsers.count} users (kept alice and bob)`);
+    // Delete ALL users
+    const deletedUsers = await prisma.user.deleteMany({});
+    logger.info(`✓ Deleted ${deletedUsers.count} users`);
 
-    logger.info('Database cleanup completed successfully!');
-    logger.info('Remaining users: alice@mail.com, bob@mail.com');
+    logger.info('✅ Database cleanup completed successfully!');
+    logger.info('Database is now completely empty.');
 
   } catch (error) {
     logger.error('Error cleaning database:', error);
