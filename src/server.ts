@@ -22,7 +22,8 @@ const startServer = async () => {
     initializeSocketServer(httpServer);
 
     // Start listening for requests
-    const server = httpServer.listen(env.PORT, () => {
+    // Listen on 0.0.0.0 to accept external connections (required for Railway/Docker)
+    const server = httpServer.listen(env.PORT, '0.0.0.0', () => {
       logger.info(`Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
       logger.info(`Health check available at: http://localhost:${env.PORT}/api/health`);
       logger.info(`WebSocket server ready for connections`);

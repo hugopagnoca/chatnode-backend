@@ -94,13 +94,39 @@ npm run preview
 
 ## Troubleshooting
 
+### Erro 502 Bad Gateway
+**Problema**: Backend não responde
+**Solução**:
+- Verifique se o servidor escuta em `0.0.0.0` (não apenas `localhost`)
+- NÃO configure variável `PORT` manualmente - Railway define automaticamente
+- Verifique logs de deploy no Railway
+
 ### Erro de CORS
-- Verifique se `CORS_ORIGIN` no backend tem a URL correta do frontend
+**Problema**: Frontend bloqueado por CORS policy
+**Solução**:
+- Backend: Configure `CORS_ORIGIN=https://seu-frontend.up.railway.app`
+- Frontend: Adicione `credentials: 'include'` nas requisições fetch
+- Frontend: Adicione `withCredentials: true` no Socket.io client
+- Frontend: Configure variáveis `VITE_API_URL` e `VITE_SOCKET_URL` no Railway
 
-### Erro de database
-- Verifique se `DATABASE_URL` está configurada
-- Rode migrations: Railway → Backend → Deploy logs
+### Erro: JWT_SECRET must be at least 32 characters
+**Problema**: JWT_SECRET muito curto
+**Solução**:
+```bash
+# Gere um secret seguro:
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+Configure no Railway com o valor gerado
 
-### Build falha
-- Verifique os logs de build no Railway
-- Certifique-se que `package.json` está correto
+### Erro: Module '@prisma/client' not found
+**Problema**: Prisma Client não foi gerado
+**Solução**:
+- Certifique-se que `package.json` tem `"postinstall": "prisma generate"`
+- Delete pasta `src/generated/prisma` se existir (deve estar em `node_modules`)
+- Redeploy no Railway
+
+### Database egress fees warning
+**Problema**: Usando endpoint público do banco
+**Solução**:
+- Use `DATABASE_URL=${{Postgres.DATABASE_PRIVATE_URL}}`
+- Ou verifique se usa `postgres.railway.internal` (rede privada)

@@ -4,24 +4,17 @@ A TypeScript-based chat application built with Express, Socket.io, and Prisma.
 
 ## 🎯 Project Status
 
-### ✅ **Completed - Etapa 1: Initial Setup**
+### ✅ **Completed - Full Stack Real-Time Chat**
 - TypeScript with strict mode
 - Express server with error handling
 - Environment configuration with Zod validation
 - Layered architecture (Controllers → Services → Repositories)
-
-### ✅ **Completed - Etapa 2: HTTP Chat Backend**
-- **Database**: Prisma + SQLite with migrations
+- **Database**: Prisma + PostgreSQL
 - **Authentication**: JWT + bcrypt password hashing
 - **Models**: User, Room, RoomMember, Message
-- **Endpoints**: Auth, Rooms, Messages (all tested and working)
-
-### 🔄 **Next - Etapa 3: WebSockets**
-- Socket.io integration
-- Real-time message delivery
-- User presence (online/offline)
-- Typing indicators
-- WebSocket authentication
+- **REST API**: Auth, Rooms, Messages
+- **WebSockets**: Socket.io with real-time messaging
+- **Deployed**: Production ready on Railway
 
 ---
 
@@ -225,31 +218,31 @@ Request → Routes → Controller → Service → Repository → Database
 - **TypeScript** - Type safety
 - **Express** - Web framework
 - **Prisma 5** - Type-safe ORM
-- **SQLite** - File-based database (easy for development)
+- **PostgreSQL** - Production database
 - **JWT** - Stateless authentication
 - **bcrypt** - Password hashing
 - **Zod** - Runtime validation
-- **Socket.io** - Real-time WebSockets (Etapa 3)
+- **Socket.io** - Real-time WebSockets
 
 ---
 
-## 🔜 Next Steps (Etapa 3)
+## 🚀 Deployment (Railway)
 
-When you're ready to continue:
+### Environment Variables Required:
+```env
+NODE_ENV=production
+JWT_SECRET=<minimum-32-characters>
+JWT_EXPIRES_IN=7d
+DATABASE_URL=<postgresql-connection-string>
+CORS_ORIGIN=<frontend-url>
+```
 
-1. **Install Socket.io**
-   ```bash
-   npm install socket.io @types/socket.io
-   ```
-
-2. **Implement WebSocket features:**
-   - Socket.io server setup
-   - WebSocket authentication
-   - Real-time message events
-   - User presence tracking
-   - Typing indicators
-
-3. **Test real-time features**
+### Deploy Steps:
+1. Connect GitHub repository to Railway
+2. Add PostgreSQL service
+3. Configure environment variables
+4. Railway automatically builds and deploys
+5. Access at: `https://your-app.up.railway.app`
 
 ---
 
