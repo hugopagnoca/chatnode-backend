@@ -52,5 +52,10 @@ const parseEnv = () => {
 // Export the validated config
 export const env = parseEnv();
 
+// Log CORS config in production for debugging
+if (env.NODE_ENV === 'production') {
+  console.log('[ENV] CORS_ORIGIN:', env.CORS_ORIGIN);
+}
+
 // Export the type so other files know the shape
 export type Env = z.infer<typeof envSchema>;
