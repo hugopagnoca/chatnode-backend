@@ -1,5 +1,5 @@
 import { prisma } from '@/config/database';
-import { Room, RoomMember } from '@/generated/prisma';
+import { Room, RoomMember } from '@prisma/client';
 
 /**
  * Room Repository

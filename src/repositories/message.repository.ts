@@ -1,5 +1,5 @@
 import { prisma } from '@/config/database';
-import { Message } from '@/generated/prisma';
+import { Message } from '@prisma/client';
 
 /**
  * Message Repository
