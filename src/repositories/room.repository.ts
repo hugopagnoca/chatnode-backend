@@ -93,7 +93,7 @@ export class RoomRepository {
    * Returns: Only public rooms (excludes DMs)
    * DMs are accessed directly by clicking on users
    */
-  async findAvailableForUser(userId: string) {
+  async findAvailableForUser(_userId: string) {
     return prisma.room.findMany({
       where: {
         NOT: {

@@ -6,7 +6,7 @@ import { logger } from '@/utils/logger';
  *
  * Manages user connections and disconnections
  */
-export const setupConnectionHandlers = (io: Server, socket: Socket) => {
+export const setupConnectionHandlers = (_io: Server, socket: Socket) => {
   /**
    * Handle user disconnect
    */
