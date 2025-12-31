@@ -146,6 +146,22 @@ export class RoomController {
       next(error);
     }
   }
+
+  async markAsRead(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { roomId } = req.params;
+      const userId = req.user!.id;
+
+      await roomService.markAsRead(roomId, userId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Room marked as read',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const roomController = new RoomController();

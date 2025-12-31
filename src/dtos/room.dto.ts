@@ -32,6 +32,7 @@ export interface RoomResponseDto {
   createdAt: Date;
   updatedAt: Date;
   memberCount?: number;  // Optional: include member count
+  unreadCount?: number;  // Optional: number of unread messages
 }
 
 /**

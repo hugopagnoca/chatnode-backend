@@ -82,15 +82,24 @@ export class RoomService {
   async getUserRooms(userId: string): Promise<RoomResponseDto[]> {
     const rooms = await roomRepository.findByUserId(userId);
 
-    return rooms.map(room => ({
-      id: room.id,
-      name: room.name,
-      description: room.description,
-      type: room.type,
-      createdAt: room.createdAt,
-      updatedAt: room.updatedAt,
-      memberCount: room._count.members,
-    }));
+    // Get unread counts for each room
+    const roomsWithUnread = await Promise.all(
+      rooms.map(async (room) => {
+        const unreadCount = await roomRepository.getUnreadCount(room.id, userId);
+        return {
+          id: room.id,
+          name: room.name,
+          description: room.description,
+          type: room.type,
+          createdAt: room.createdAt,
+          updatedAt: room.updatedAt,
+          memberCount: room._count.members,
+          unreadCount,
+        };
+      })
+    );
+
+    return roomsWithUnread;
   }
 
   /**
@@ -100,15 +109,24 @@ export class RoomService {
   async getAvailableRooms(userId: string): Promise<RoomResponseDto[]> {
     const rooms = await roomRepository.findAvailableForUser(userId);
 
-    return rooms.map(room => ({
-      id: room.id,
-      name: room.name,
-      description: room.description,
-      type: room.type,
-      createdAt: room.createdAt,
-      updatedAt: room.updatedAt,
-      memberCount: room._count.members,
-    }));
+    // Get unread counts for each room (will be 0 for rooms user hasn't joined)
+    const roomsWithUnread = await Promise.all(
+      rooms.map(async (room) => {
+        const unreadCount = await roomRepository.getUnreadCount(room.id, userId);
+        return {
+          id: room.id,
+          name: room.name,
+          description: room.description,
+          type: room.type,
+          createdAt: room.createdAt,
+          updatedAt: room.updatedAt,
+          memberCount: room._count.members,
+          unreadCount,
+        };
+      })
+    );
+
+    return roomsWithUnread;
   }
 
   /**
@@ -236,6 +254,18 @@ export class RoomService {
       updatedAt: room.updatedAt,
       memberCount: 2,
     };
+  }
+
+  /**
+   * Mark room as read (update lastReadAt)
+   */
+  async markAsRead(roomId: string, userId: string): Promise<void> {
+    const isMember = await roomRepository.isMember(roomId, userId);
+    if (!isMember) {
+      throw new BadRequestError('Not a member of this room');
+    }
+
+    await roomRepository.updateLastReadAt(roomId, userId);
   }
 }
 

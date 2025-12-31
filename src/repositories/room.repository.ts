@@ -219,6 +219,53 @@ export class RoomRepository {
 
     return null;
   }
+
+  /**
+   * Update lastReadAt timestamp for a user in a room
+   */
+  async updateLastReadAt(roomId: string, userId: string): Promise<void> {
+    await prisma.roomMember.update({
+      where: {
+        userId_roomId: {
+          userId,
+          roomId,
+        },
+      },
+      data: {
+        lastReadAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * Get unread message count for a user in a room
+   */
+  async getUnreadCount(roomId: string, userId: string): Promise<number> {
+    const member = await prisma.roomMember.findUnique({
+      where: {
+        userId_roomId: {
+          userId,
+          roomId,
+        },
+      },
+      select: {
+        lastReadAt: true,
+      },
+    });
+
+    if (!member) {
+      return 0;
+    }
+
+    // Count messages in this room created after lastReadAt
+    // If lastReadAt is null, count all messages
+    return prisma.message.count({
+      where: {
+        roomId,
+        createdAt: member.lastReadAt ? { gt: member.lastReadAt } : undefined,
+      },
+    });
+  }
 }
 
 // Export singleton instance

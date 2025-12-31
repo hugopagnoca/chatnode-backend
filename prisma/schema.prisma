@@ -51,10 +51,11 @@ model Room {
 // ============================================
 // Many-to-Many: Users can be in many Rooms, Rooms can have many Users
 model RoomMember {
-  id        String   @id @default(uuid())
-  userId    String
-  roomId    String
-  joinedAt  DateTime @default(now())
+  id         String    @id @default(uuid())
+  userId     String
+  roomId     String
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime? // Last time user read messages in this room (for unread badges)
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

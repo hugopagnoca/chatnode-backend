@@ -56,6 +56,12 @@ router.post('/:roomId/join', roomController.joinRoom.bind(roomController));
 router.post('/:roomId/leave', roomController.leaveRoom.bind(roomController));
 
 /**
+ * POST /api/rooms/:roomId/mark-read
+ * Mark room as read (update lastReadAt)
+ */
+router.post('/:roomId/mark-read', roomController.markAsRead.bind(roomController));
+
+/**
  * POST /api/rooms/direct/:userId
  * Create or get direct message with a user
  */
