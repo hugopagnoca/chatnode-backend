@@ -12,7 +12,7 @@ async function createTestUsers() {
     const password = await bcrypt.hash('admin123', 10);
 
     // Create or update admin
-    const admin = await prisma.user.upsert({
+    await prisma.user.upsert({
       where: { email: 'admin@chatnode.com' },
       update: { password },
       create: {
